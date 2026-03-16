@@ -12,12 +12,6 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class GatewayConfig {
 
-    /**
-     * Logging filter only.
-     * CORS is handled entirely by globalcors in application.yml.
-     * The old corsPreflightFilter has been removed — it conflicted
-     * with globalcors and caused duplicate CORS headers.
-     */
     @Bean
     @Order(-1)
     public GlobalFilter loggingFilter() {
