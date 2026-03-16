@@ -66,9 +66,6 @@ public class JwtAuthFilter extends
                 String email    = claims.get("email",    String.class);
                 String provider = claims.get("provider", String.class);
 
-                // Forward validated claims as headers to downstream services.
-                // Downstream GatewayAuthFilter reads these and builds
-                // Spring Security's SecurityContext — enabling @PreAuthorize.
                 ServerHttpRequest mutated = request.mutate()
                         .header("X-Auth-Username", username != null ? username : "")
                         .header("X-Auth-Role",     role     != null ? role     : "")
