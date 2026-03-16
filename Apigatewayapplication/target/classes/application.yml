@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: apigateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          trusted-proxies: ".*"
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:5173"
+                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+                allowedHeaders: ["*"]
+                allowCredentials: true
+
+          routes:
+
+            # ── Auth service (9090) — open ──────────────────
+            - id: auth-login
+              uri: http://localhost:9090
+              predicates:
+                - Path=/api/auth/login
+
+            - id: auth-register
+              uri: http://localhost:9090
+              predicates:
+                - Path=/api/auth/register
+
+            - id: auth-logout
+              uri: http://localhost:9090
+              predicates:
+                - Path=/api/auth/logout
+
+            # NOTE: /api/auth/oauth2/save-user is NOT exposed here
+            # It is called directly service-to-service (OAuth2 → Auth)
+
+            # ── User service (9091) — protected ────────────
+            - id: user-me
+              uri: http://localhost:9091
+              predicates:
+                - Path=/api/user/me
+              filters:
+                - name: JwtAuthFilter
+
+            - id: admin-users
+              uri: http://localhost:9091
+              predicates:
+                - Path=/api/admin/users/**
+              filters:
+                - name: JwtAuthFilter
+
+            # ── Auth service (9090) — dashboard (legacy) ───
+            - id: auth-admin-dashboard
+              uri: http://localhost:9090
+              predicates:
+                - Path=/api/admin/dashboard
+              filters:
+                - name: JwtAuthFilter
+
+            - id: auth-user-dashboard
+              uri: http://localhost:9090
+              predicates:
+                - Path=/api/user/dashboard
+              filters:
+                - name: JwtAuthFilter
+
+            # ── Profile service (9093) ──────────────────────
+            - id: profile-service
+              uri: http://localhost:9093
+              predicates:
+                - Path=/api/profile/**
+
+            # ── OAuth2 service (9092) ───────────────────────
+            - id: oauth2-initiate
+              uri: http://localhost:9092
+              predicates:
+                - Path=/oauth2/**
+
+            - id: oauth2-callback
+              uri: http://localhost:9092
+              predicates:
+                - Path=/login/oauth2/**
+
+server:
+  port: 1013
+
+jwt:
+  secret: ${JWT_SECRET:spantag-super-secret-jwt-key-2026-minimum-32chars}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
